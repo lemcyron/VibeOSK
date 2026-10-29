@@ -1,0 +1,294 @@
+/* GNOME Enhanced On-Screen Keyboard Stylesheet */
+
+/* Main Container */
+.osk-container {
+    background-color: rgba(28, 28, 30, 0.94);
+    border-radius: 16px 16px 0 0;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.45);
+    padding: 6px 10px 10px 10px;
+}
+
+/* Header bar */
+.osk-header {
+    height: 38px;
+    padding: 0 4px 6px 4px;
+    spacing: 6px;
+}
+
+.osk-drag-handle {
+    spacing: 8px;
+    padding: 4px 10px;
+    border-radius: 8px;
+}
+
+.osk-drag-handle:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
+.osk-header-icon {
+    icon-size: 16px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.osk-header-title {
+    font-size: 12pt;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.osk-header-btn {
+    padding: 4px 10px;
+    border-radius: 8px;
+    background-color: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 10pt;
+    font-weight: 500;
+    transition-duration: 150ms;
+}
+
+.osk-header-btn:hover {
+    background-color: rgba(255, 255, 255, 0.16);
+    color: #ffffff;
+}
+
+.osk-header-btn:active {
+    background-color: rgba(255, 255, 255, 0.24);
+}
+
+.osk-icon-btn {
+    icon-size: 15px;
+}
+
+.osk-close-btn:hover {
+    background-color: rgba(235, 60, 60, 0.6);
+    color: #ffffff;
+}
+
+/* Keyboard Body & Rows */
+.osk-body {
+    spacing: 5px;
+}
+
+.osk-row {
+    spacing: 5px;
+    x-expand: true;
+}
+
+/* Key Buttons */
+.osk-key {
+    background-color: rgba(255, 255, 255, 0.10);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    min-height: 44px;
+    padding: 2px 4px;
+    transition-duration: 120ms;
+}
+
+.osk-key:hover {
+    background-color: rgba(255, 255, 255, 0.18);
+    border-color: rgba(255, 255, 255, 0.18);
+}
+
+.osk-key:active,
+.osk-key.active {
+    background-color: rgba(53, 132, 228, 0.85);
+    border-color: #3584e4;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Key Labels */
+.osk-key-label {
+    font-size: 13pt;
+    font-weight: 600;
+    color: #ffffff;
+    text-align: center;
+}
+
+.osk-key-label-single {
+    font-size: 14pt;
+    font-weight: 500;
+    color: #ffffff;
+    text-align: center;
+}
+
+.osk-key-sublabel {
+    font-size: 9pt;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.55);
+    text-align: center;
+    margin-bottom: -2px;
+}
+
+/* Modifier Keys */
+.osk-key-modifier {
+    background-color: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+.osk-key-modifier.checked,
+.osk-key-modifier:checked {
+    background-color: #3584e4 !important;
+    border-color: #78aeed !important;
+    color: #ffffff !important;
+    box-shadow: 0 0 10px rgba(53, 132, 228, 0.7);
+}
+
+/* Special Actions */
+.osk-key-action {
+    background-color: rgba(255, 255, 255, 0.13);
+}
+
+.osk-key-enter {
+    background-color: rgba(46, 194, 126, 0.75);
+    border-color: rgba(46, 194, 126, 0.9);
+}
+
+.osk-key-enter:hover {
+    background-color: rgba(46, 194, 126, 0.95);
+}
+
+.osk-key-enter:active {
+    background-color: #26a269;
+}
+
+.osk-key-nav {
+    background-color: rgba(255, 255, 255, 0.12);
+}
+
+.osk-key-layout-switch {
+    background-color: rgba(255, 255, 255, 0.14);
+    font-size: 11pt;
+    font-weight: 600;
+}
+
+.osk-key-space {
+    background-color: rgba(255, 255, 255, 0.10);
+}
+
+.osk-key-numpad-digit {
+    background-color: rgba(255, 255, 255, 0.13);
+    font-weight: 700;
+}
+
+/* Magnified Key Preview Tooltip */
+.osk-key-preview {
+    background-color: #3584e4;
+    color: #ffffff;
+    font-size: 22pt;
+    font-weight: 700;
+    min-width: 56px;
+    min-height: 56px;
+    border-radius: 12px;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
+    text-align: center;
+    padding: 6px 12px;
+}
+
+/* Accents Popover */
+.osk-accent-popover {
+    background-color: rgba(36, 36, 40, 0.96);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+    padding: 4px 6px;
+    spacing: 4px;
+}
+
+.osk-accent-btn {
+    min-width: 40px;
+    min-height: 40px;
+    border-radius: 8px;
+    background-color: rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+    font-size: 14pt;
+    font-weight: 600;
+}
+
+.osk-accent-btn:hover {
+    background-color: #3584e4;
+}
+
+/* Themes */
+
+/* Light Theme */
+.theme-light {
+    background-color: rgba(240, 242, 246, 0.96);
+    border: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+.theme-light .osk-header-title {
+    color: #1a1a1e;
+}
+
+.theme-light .osk-header-icon {
+    color: #4a4a52;
+}
+
+.theme-light .osk-header-btn {
+    background-color: rgba(0, 0, 0, 0.07);
+    color: #1a1a1e;
+}
+
+.theme-light .osk-header-btn:hover {
+    background-color: rgba(0, 0, 0, 0.14);
+}
+
+.theme-light .osk-key {
+    background-color: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.theme-light .osk-key:hover {
+    background-color: #e8ebf0;
+}
+
+.theme-light .osk-key-label,
+.theme-light .osk-key-label-single {
+    color: #111215;
+}
+
+.theme-light .osk-key-sublabel {
+    color: #6c707a;
+}
+
+.theme-light .osk-key-modifier,
+.theme-light .osk-key-action {
+    background-color: #e2e5ec;
+}
+
+/* High Contrast Theme */
+.theme-high-contrast {
+    background-color: #000000;
+    border: 2px solid #ffffff;
+}
+
+.theme-high-contrast .osk-key {
+    background-color: #1a1a1a;
+    border: 2px solid #ffffff;
+}
+
+.theme-high-contrast .osk-key-label,
+.theme-high-contrast .osk-key-label-single {
+    color: #ffffff;
+    font-weight: 700;
+}
+
+.theme-high-contrast .osk-key-modifier.checked {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+}
+
+/* AMOLED Pure Black Theme */
+.theme-amoled {
+    background-color: #000000;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.theme-amoled .osk-key {
+    background-color: #121212;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}

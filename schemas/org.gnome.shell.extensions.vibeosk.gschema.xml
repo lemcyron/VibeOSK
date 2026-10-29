@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist gettext-domain="vibe-osk">
+  <schema id="org.gnome.shell.extensions.vibeosk" path="/org/gnome/shell/extensions/vibeosk/">
+    
+    <key name="enabled" type="b">
+      <default>true</default>
+      <summary>Enable/Disable On-Screen Keyboard</summary>
+      <description>Master switch to enable or disable the on-screen keyboard extension.</description>
+    </key>
+
+    <key name="layout" type="s">
+      <default>'qwerty'</default>
+      <summary>Keyboard Layout</summary>
+      <description>Default layout: qwerty, qwertz, azerty, dvorak, numpad, symbols, function, emoji.</description>
+    </key>
+
+    <key name="dock-position" type="s">
+      <default>'bottom'</default>
+      <summary>Dock Position</summary>
+      <description>Position of the keyboard: 'bottom', 'top', or 'floating'.</description>
+    </key>
+
+    <key name="keyboard-height" type="i">
+      <default>290</default>
+      <summary>Keyboard Height in Pixels</summary>
+      <description>Height of the on-screen keyboard container in pixels (200 - 600).</description>
+    </key>
+
+    <key name="keyboard-width-percent" type="i">
+      <default>100</default>
+      <summary>Keyboard Width Percentage</summary>
+      <description>Width of the keyboard as percentage of monitor width (50 - 100).</description>
+    </key>
+
+    <key name="keyboard-opacity" type="d">
+      <default>0.95</default>
+      <summary>Keyboard Background Opacity</summary>
+      <description>Opacity level for keyboard background from 0.4 to 1.0.</description>
+    </key>
+
+    <key name="theme-style" type="s">
+      <default>'system'</default>
+      <summary>Visual Theme</summary>
+      <description>Theme style: 'system', 'dark', 'light', 'high-contrast', 'amoled'.</description>
+    </key>
+
+    <key name="auto-show-on-focus" type="b">
+      <default>false</default>
+      <summary>Auto-show on Text Focus</summary>
+      <description>Automatically reveal keyboard when an editable text field receives focus.</description>
+    </key>
+
+    <key name="sound-feedback" type="b">
+      <default>false</default>
+      <summary>Key Press Sound</summary>
+      <description>Play an audio click effect on key press.</description>
+    </key>
+
+    <key name="preview-popup" type="b">
+      <default>true</default>
+      <summary>Key Preview Popup</summary>
+      <description>Show a magnified bubble preview over pressed keys.</description>
+    </key>
+
+    <key name="show-numpad-toggle" type="b">
+      <default>true</default>
+      <summary>Show Numpad Quick Key</summary>
+      <description>Display dedicated numpad switch key on main keyboard row.</description>
+    </key>
+
+    <key name="show-arrow-keys" type="b">
+      <default>true</default>
+      <summary>Show Dedicated Navigation Keys</summary>
+      <description>Include arrow navigation keys in standard layouts.</description>
+    </key>
+
+    <key name="floating-x" type="i">
+      <default>100</default>
+      <summary>Floating X position</summary>
+      <description>Saved X position for floating mode.</description>
+    </key>
+
+    <key name="floating-y" type="i">
+      <default>400</default>
+      <summary>Floating Y position</summary>
+      <description>Saved Y position for floating mode.</description>
+    </key>
+
+    <key name="indicator-position" type="s">
+      <default>'right'</default>
+      <summary>Panel Indicator Position</summary>
+      <description>Position in top panel: 'left', 'center', 'right'.</description>
+    </key>
+
+  </schema>
+</schemalist>

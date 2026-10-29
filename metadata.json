@@ -1,0 +1,18 @@
+{
+  "uuid": "vibe-osk@extensions.gnome.org",
+  "name": "Vibe On-Screen Keyboard",
+  "description": "A stylish, high-performance, and feature-rich On-Screen Keyboard (OSK) for GNOME Shell 45-51 with support for QWERTY, QWERTZ, AZERTY, Dvorak, dedicated Numpad, Symbols, Function & Navigation keys, floating/docked modes, and customizable Libadwaita preferences.",
+  "shell-version": [
+    "45",
+    "46",
+    "47",
+    "48",
+    "49",
+    "50",
+    "51"
+  ],
+  "url": "https://github.com/vibe-osk/vibe-osk",
+  "settings-schema": "org.gnome.shell.extensions.vibeosk",
+  "gettext-domain": "vibe-osk",
+  "version": 1
+}
