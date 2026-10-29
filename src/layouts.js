@@ -64,15 +64,15 @@ export const LayoutDefinitions = {
                 { label: ',', shiftLabel: '<', keyval: KeyCodes.COMMA, shiftKeyval: KeyCodes.LESS, width: 1 },
                 { label: '.', shiftLabel: '>', keyval: KeyCodes.PERIOD, shiftKeyval: KeyCodes.GREATER, width: 1 },
                 { label: '/', shiftLabel: '?', keyval: KeyCodes.SLASH, shiftKeyval: KeyCodes.QUESTION, width: 1 },
-                { label: '▲', type: SpecialKeyType.ACTION, action: 'up', keyval: KeyCodes.UP, width: 1.1, cssClass: 'osk-key-nav' },
-                { label: 'Del', type: SpecialKeyType.ACTION, action: 'delete', keyval: KeyCodes.DELETE, width: 1.3, cssClass: 'osk-key-action' }
+                { label: '▲', type: SpecialKeyType.ACTION, action: 'up', keyval: KeyCodes.UP, width: 1.0, cssClass: 'osk-key-nav' },
+                { label: 'Del', type: SpecialKeyType.ACTION, action: 'delete', keyval: KeyCodes.DELETE, width: 1.4, cssClass: 'osk-key-action' }
             ],
             [
                 { label: 'Fn', type: SpecialKeyType.SWITCH_LAYOUT, targetLayout: LayoutTypes.FUNCTION, width: 1.3, cssClass: 'osk-key-layout-switch' },
                 { label: 'Ctrl', type: SpecialKeyType.MODIFIER, modifier: 'ctrl', keyval: KeyCodes.CONTROL_L, width: 1.5, cssClass: 'osk-key-modifier' },
-                { label: 'Super', type: SpecialKeyType.MODIFIER, modifier: 'super', keyval: KeyCodes.SUPER_L, width: 1.4, cssClass: 'osk-key-modifier' },
+                { label: 'Super', type: SpecialKeyType.ACTION, action: 'super', keyval: KeyCodes.SUPER_L, width: 1.4, cssClass: 'osk-key-modifier' },
                 { label: 'Alt', type: SpecialKeyType.MODIFIER, modifier: 'alt', keyval: KeyCodes.ALT_L, width: 1.5, cssClass: 'osk-key-modifier' },
-                { label: 'Space', keyval: KeyCodes.SPACE, width: 5.9, cssClass: 'osk-key-space' },
+                { label: 'Space', keyval: KeyCodes.SPACE, width: 7.5, cssClass: 'osk-key-space' },
                 { label: '◀', type: SpecialKeyType.ACTION, action: 'left', keyval: KeyCodes.LEFT, width: 1.0, cssClass: 'osk-key-nav' },
                 { label: '▼', type: SpecialKeyType.ACTION, action: 'down', keyval: KeyCodes.DOWN, width: 1.0, cssClass: 'osk-key-nav' },
                 { label: '▶', type: SpecialKeyType.ACTION, action: 'right', keyval: KeyCodes.RIGHT, width: 1.0, cssClass: 'osk-key-nav' }

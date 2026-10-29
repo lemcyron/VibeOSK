@@ -21,6 +21,9 @@ export default class VibeOSKExtension extends Extension {
         const pos = this._settings.get_string('indicator-position') || 'right';
         Main.panel.addToStatusArea(this.uuid, this._indicator, 1, pos);
 
+        // Suppress GNOME's built-in on-screen keyboard so VibeOSK has priority
+        this._suppressGnomeOSK();
+
         // Auto-show focus detection
         this._stageFocusSignalId = null;
         this._setupAutoShow();
@@ -29,6 +32,41 @@ export default class VibeOSKExtension extends Extension {
         this._autoShowSettingSig = this._settings.connect('changed::auto-show-on-focus', () => {
             this._setupAutoShow();
         });
+    }
+
+    _suppressGnomeOSK() {
+        // GNOME's built-in keyboard manager lives at Main.keyboard.
+        // We patch its _show/_open methods to no-ops so it never appears
+        // while VibeOSK is active. The originals are restored on disable().
+        const kb = Main.keyboard;
+        if (!kb) return;
+
+        if (typeof kb._show === 'function' && !kb._vibeOSK_origShow) {
+            kb._vibeOSK_origShow = kb._show.bind(kb);
+            kb._show = () => {};
+        }
+        if (typeof kb._open === 'function' && !kb._vibeOSK_origOpen) {
+            kb._vibeOSK_origOpen = kb._open.bind(kb);
+            kb._open = () => {};
+        }
+        // Also hide it immediately in case it is currently visible
+        try {
+            if (typeof kb._hide === 'function') kb._hide();
+        } catch (e) {}
+    }
+
+    _restoreGnomeOSK() {
+        const kb = Main.keyboard;
+        if (!kb) return;
+
+        if (kb._vibeOSK_origShow) {
+            kb._show = kb._vibeOSK_origShow;
+            delete kb._vibeOSK_origShow;
+        }
+        if (kb._vibeOSK_origOpen) {
+            kb._open = kb._vibeOSK_origOpen;
+            delete kb._vibeOSK_origOpen;
+        }
     }
 
     _setupAutoShow() {
@@ -58,6 +96,9 @@ export default class VibeOSKExtension extends Extension {
 
     disable() {
         console.log(`[VibeOSK] Disabling ${this.metadata.name}`);
+
+        // Restore GNOME's built-in OSK
+        this._restoreGnomeOSK();
 
         if (this._autoShowSettingSig) {
             this._settings.disconnect(this._autoShowSettingSig);

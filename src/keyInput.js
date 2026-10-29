@@ -144,6 +144,9 @@ export class KeyInputManager {
                 this.sendTab();
             } else if (keyData.action === 'delete') {
                 this.sendDelete();
+            } else if (keyData.action === 'super') {
+                this.sendKeyval(KeyCodes.SUPER_L);
+                return;
             } else if (keyData.keyval) {
                 this.sendKeyval(keyData.keyval);
             }
@@ -219,11 +222,6 @@ export class KeyInputManager {
 
     sendReturn() {
         this.sendKeyval(KeyCodes.RETURN);
-        try {
-            if (Main.inputMethod && typeof Main.inputMethod.commit === 'function') {
-                Main.inputMethod.commit('\n');
-            }
-        } catch (e) {}
     }
 
     sendTab() {
