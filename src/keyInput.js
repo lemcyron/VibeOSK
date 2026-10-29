@@ -26,9 +26,14 @@ export class KeyInputManager {
 
     _initVirtualDevice() {
         try {
-            const seat = Clutter.get_default_backend().get_default_seat();
-            if (seat && typeof seat.create_virtual_input_device === 'function') {
-                this._virtualDevice = seat.create_virtual_input_device(Clutter.InputDeviceType.KEYBOARD_DEVICE);
+            const backend = Clutter.get_default_backend();
+            const seat = backend ? backend.get_default_seat() : null;
+            if (seat) {
+                if (typeof seat.create_virtual_device === 'function') {
+                    this._virtualDevice = seat.create_virtual_device(Clutter.InputDeviceType.KEYBOARD_DEVICE);
+                } else if (typeof seat.create_virtual_input_device === 'function') {
+                    this._virtualDevice = seat.create_virtual_input_device(Clutter.InputDeviceType.KEYBOARD_DEVICE);
+                }
             }
         } catch (e) {
             console.warn(`[VibeOSK] Failed to create virtual keyboard device: ${e}`);
@@ -120,6 +125,7 @@ export class KeyInputManager {
         this._playSound();
 
         const isShifted = this.isShifted();
+        const hasModifierCombo = this.modifiers.ctrl || this.modifiers.alt || this.modifiers.super;
 
         // 1. Direct text string (e.g. emoji, accent string)
         if (keyData.text) {
@@ -136,6 +142,8 @@ export class KeyInputManager {
                 this.sendReturn();
             } else if (keyData.action === 'tab') {
                 this.sendTab();
+            } else if (keyData.action === 'delete') {
+                this.sendDelete();
             } else if (keyData.keyval) {
                 this.sendKeyval(keyData.keyval);
             }
@@ -143,7 +151,14 @@ export class KeyInputManager {
             return;
         }
 
-        // 3. Regular character (letters, numbers, punctuation, space)
+        // 3. If Ctrl/Alt/Super modifier is held down, send as keyval combo
+        if (hasModifierCombo && keyData.keyval) {
+            this.sendKeyval(keyData.keyval);
+            this.clearNonLockModifiers();
+            return;
+        }
+
+        // 4. Regular character (letters, numbers, punctuation, space)
         let charToCommit = null;
 
         if (keyData.action === 'space' || keyData.keyval === KeyCodes.SPACE || keyData.label === 'Space') {
@@ -194,20 +209,39 @@ export class KeyInputManager {
     }
 
     sendBackspace() {
+        this.sendKeyval(KeyCodes.BACKSPACE);
         try {
             if (Main.inputMethod && typeof Main.inputMethod.delete_surrounding === 'function') {
                 Main.inputMethod.delete_surrounding(-1, 1);
             }
         } catch (e) {}
-        this.sendKeyval(KeyCodes.BACKSPACE);
     }
 
     sendReturn() {
         this.sendKeyval(KeyCodes.RETURN);
+        try {
+            if (Main.inputMethod && typeof Main.inputMethod.commit === 'function') {
+                Main.inputMethod.commit('\n');
+            }
+        } catch (e) {}
     }
 
     sendTab() {
         this.sendKeyval(KeyCodes.TAB);
+        try {
+            if (Main.inputMethod && typeof Main.inputMethod.commit === 'function') {
+                Main.inputMethod.commit('\t');
+            }
+        } catch (e) {}
+    }
+
+    sendDelete() {
+        this.sendKeyval(KeyCodes.DELETE);
+        try {
+            if (Main.inputMethod && typeof Main.inputMethod.delete_surrounding === 'function') {
+                Main.inputMethod.delete_surrounding(0, 1);
+            }
+        } catch (e) {}
     }
 
     sendCombo(modifiers, keyval) {

@@ -336,8 +336,8 @@ class KeyboardWidget extends St.BoxLayout {
             case SpecialKeyType.ACTION:
                 if (keyData.combo) {
                     this._keyInput.sendCombo(keyData.combo, keyData.keyval);
-                } else if (keyData.keyval) {
-                    this._keyInput.sendKeyval(keyData.keyval);
+                } else {
+                    this._keyInput.sendKey(keyData);
                 }
                 break;
 

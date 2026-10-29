@@ -68,18 +68,14 @@ export const LayoutDefinitions = {
                 { label: 'Del', type: SpecialKeyType.ACTION, action: 'delete', keyval: KeyCodes.DELETE, width: 1.3, cssClass: 'osk-key-action' }
             ],
             [
-                { label: '?123', type: SpecialKeyType.SWITCH_LAYOUT, targetLayout: LayoutTypes.SYMBOLS, width: 1.4, cssClass: 'osk-key-layout-switch' },
-                { label: 'Fn', type: SpecialKeyType.SWITCH_LAYOUT, targetLayout: LayoutTypes.FUNCTION, width: 1.1, cssClass: 'osk-key-layout-switch' },
-                { label: 'Ctrl', type: SpecialKeyType.MODIFIER, modifier: 'ctrl', keyval: KeyCodes.CONTROL_L, width: 1.2, cssClass: 'osk-key-modifier' },
-                { label: 'Super', type: SpecialKeyType.MODIFIER, modifier: 'super', keyval: KeyCodes.SUPER_L, width: 1.2, cssClass: 'osk-key-modifier' },
-                { label: 'Alt', type: SpecialKeyType.MODIFIER, modifier: 'alt', keyval: KeyCodes.ALT_L, width: 1.2, cssClass: 'osk-key-modifier' },
-                { label: 'Space', keyval: KeyCodes.SPACE, width: 4.6, cssClass: 'osk-key-space' },
-                { label: 'AltGr', type: SpecialKeyType.MODIFIER, modifier: 'altgr', keyval: KeyCodes.ISO_LEVEL3_SHIFT, width: 1.2, cssClass: 'osk-key-modifier' },
-                { label: '😊', type: SpecialKeyType.SWITCH_LAYOUT, targetLayout: LayoutTypes.EMOJI, width: 1.1, cssClass: 'osk-key-layout-switch' },
-                { label: '123#', type: SpecialKeyType.SWITCH_LAYOUT, targetLayout: LayoutTypes.NUMPAD, width: 1.2, cssClass: 'osk-key-layout-switch' },
-                { label: '◀', type: SpecialKeyType.ACTION, action: 'left', keyval: KeyCodes.LEFT, width: 1, cssClass: 'osk-key-nav' },
-                { label: '▼', type: SpecialKeyType.ACTION, action: 'down', keyval: KeyCodes.DOWN, width: 1, cssClass: 'osk-key-nav' },
-                { label: '▶', type: SpecialKeyType.ACTION, action: 'right', keyval: KeyCodes.RIGHT, width: 1, cssClass: 'osk-key-nav' }
+                { label: 'Fn', type: SpecialKeyType.SWITCH_LAYOUT, targetLayout: LayoutTypes.FUNCTION, width: 1.3, cssClass: 'osk-key-layout-switch' },
+                { label: 'Ctrl', type: SpecialKeyType.MODIFIER, modifier: 'ctrl', keyval: KeyCodes.CONTROL_L, width: 1.5, cssClass: 'osk-key-modifier' },
+                { label: 'Super', type: SpecialKeyType.MODIFIER, modifier: 'super', keyval: KeyCodes.SUPER_L, width: 1.4, cssClass: 'osk-key-modifier' },
+                { label: 'Alt', type: SpecialKeyType.MODIFIER, modifier: 'alt', keyval: KeyCodes.ALT_L, width: 1.5, cssClass: 'osk-key-modifier' },
+                { label: 'Space', keyval: KeyCodes.SPACE, width: 5.9, cssClass: 'osk-key-space' },
+                { label: '◀', type: SpecialKeyType.ACTION, action: 'left', keyval: KeyCodes.LEFT, width: 1.0, cssClass: 'osk-key-nav' },
+                { label: '▼', type: SpecialKeyType.ACTION, action: 'down', keyval: KeyCodes.DOWN, width: 1.0, cssClass: 'osk-key-nav' },
+                { label: '▶', type: SpecialKeyType.ACTION, action: 'right', keyval: KeyCodes.RIGHT, width: 1.0, cssClass: 'osk-key-nav' }
             ]
         ]
     },
