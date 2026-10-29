@@ -70,7 +70,7 @@ export const LayoutDefinitions = {
             [
                 { label: 'Fn', type: SpecialKeyType.SWITCH_LAYOUT, targetLayout: LayoutTypes.FUNCTION, width: 1.3, cssClass: 'osk-key-layout-switch' },
                 { label: 'Ctrl', type: SpecialKeyType.MODIFIER, modifier: 'ctrl', keyval: KeyCodes.CONTROL_L, width: 1.5, cssClass: 'osk-key-modifier' },
-                { label: 'Super', type: SpecialKeyType.ACTION, action: 'super', keyval: KeyCodes.SUPER_L, width: 1.4, cssClass: 'osk-key-modifier' },
+                { label: 'Super', type: SpecialKeyType.MODIFIER, modifier: 'super', keyval: KeyCodes.SUPER_L, width: 1.4, cssClass: 'osk-key-modifier' },
                 { label: 'Alt', type: SpecialKeyType.MODIFIER, modifier: 'alt', keyval: KeyCodes.ALT_L, width: 1.5, cssClass: 'osk-key-modifier' },
                 { label: 'Space', keyval: KeyCodes.SPACE, width: 7.5, cssClass: 'osk-key-space' },
                 { label: '◀', type: SpecialKeyType.ACTION, action: 'left', keyval: KeyCodes.LEFT, width: 1.0, cssClass: 'osk-key-nav' },

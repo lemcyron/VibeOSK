@@ -59,56 +59,42 @@ export class KeyInputManager {
     }
 
     toggleModifier(modifierName) {
-        if (modifierName in this.modifiers) {
-            this.modifiers[modifierName] = !this.modifiers[modifierName];
-            
-            // If physical modifier press is desired
-            const keyvalMap = {
-                shift: KeyCodes.SHIFT_L,
-                ctrl: KeyCodes.CONTROL_L,
-                alt: KeyCodes.ALT_L,
-                super: KeyCodes.SUPER_L,
-                altgr: KeyCodes.ISO_LEVEL3_SHIFT,
-                caps: KeyCodes.CAPS_LOCK
-            };
+        if (!(modifierName in this.modifiers)) return;
 
-            const keyval = keyvalMap[modifierName];
-            if (keyval && this._virtualDevice) {
-                const now = GLib.get_monotonic_time();
-                const state = this.modifiers[modifierName] ? Clutter.KeyState.PRESSED : Clutter.KeyState.RELEASED;
-                try {
-                    this._virtualDevice.notify_keyval(now, keyval, state);
-                } catch (e) {
-                    // Fallback or ignore
+        this.modifiers[modifierName] = !this.modifiers[modifierName];
+
+        // For Super: a standalone tap (toggle on then off with no key in between)
+        // should send a real press+release so the desktop reacts (e.g. open Activities).
+        // We track whether Super was "consumed" by a combo in sendKey.
+        if (modifierName === 'super') {
+            if (this.modifiers.super) {
+                // Just turned on — mark it as unconsumed
+                this._superConsumed = false;
+            } else {
+                // Just turned off — if nothing consumed it, fire a tap
+                if (!this._superConsumed && this._virtualDevice) {
+                    const now = GLib.get_monotonic_time();
+                    try {
+                        this._virtualDevice.notify_keyval(now, KeyCodes.SUPER_L, Clutter.KeyState.PRESSED);
+                        this._virtualDevice.notify_keyval(now + 50, KeyCodes.SUPER_L, Clutter.KeyState.RELEASED);
+                    } catch (e) {}
                 }
+                this._superConsumed = false;
             }
-
-            this._notifyModifiersChanged();
-            this._playSound();
         }
+
+        this._notifyModifiersChanged();
+        this._playSound();
     }
 
     clearNonLockModifiers() {
         let changed = false;
         const nonLockMods = ['shift', 'ctrl', 'alt', 'super', 'altgr'];
-        const keyvalMap = {
-            shift: KeyCodes.SHIFT_L,
-            ctrl: KeyCodes.CONTROL_L,
-            alt: KeyCodes.ALT_L,
-            super: KeyCodes.SUPER_L,
-            altgr: KeyCodes.ISO_LEVEL3_SHIFT
-        };
 
         for (const mod of nonLockMods) {
             if (this.modifiers[mod]) {
                 this.modifiers[mod] = false;
                 changed = true;
-                if (this._virtualDevice && keyvalMap[mod]) {
-                    const now = GLib.get_monotonic_time();
-                    try {
-                        this._virtualDevice.notify_keyval(now, keyvalMap[mod], Clutter.KeyState.RELEASED);
-                    } catch (e) {}
-                }
             }
         }
 
@@ -144,9 +130,6 @@ export class KeyInputManager {
                 this.sendTab();
             } else if (keyData.action === 'delete') {
                 this.sendDelete();
-            } else if (keyData.action === 'super') {
-                this.sendKeyval(KeyCodes.SUPER_L);
-                return;
             } else if (keyData.keyval) {
                 this.sendKeyval(keyData.keyval);
             }
@@ -154,9 +137,17 @@ export class KeyInputManager {
             return;
         }
 
-        // 3. If Ctrl/Alt/Super modifier is held down, send as keyval combo
+        // 3. If Ctrl/Alt/Super modifier is held down, send as atomic combo
         if (hasModifierCombo && keyData.keyval) {
-            this.sendKeyval(keyData.keyval);
+            const activeMods = [];
+            if (this.modifiers.shift || this.modifiers.caps) activeMods.push('shift');
+            if (this.modifiers.ctrl) activeMods.push('ctrl');
+            if (this.modifiers.alt) activeMods.push('alt');
+            if (this.modifiers.super) {
+                activeMods.push('super');
+                this._superConsumed = true;
+            }
+            this.sendCombo(activeMods, keyData.keyval);
             this.clearNonLockModifiers();
             return;
         }
