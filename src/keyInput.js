@@ -212,7 +212,15 @@ export class KeyInputManager {
     }
 
     sendReturn() {
+        // Send via virtual device for terminals and raw-key clients (X11, xterm, etc.)
         this.sendKeyval(KeyCodes.RETURN);
+        // Send '\r' via input method for GTK/Qt Wayland IM clients (text fields, browsers, etc.)
+        // '\r' (0x0d) is the correct IM representation of Return — not '\n'
+        try {
+            if (Main.inputMethod && typeof Main.inputMethod.commit === 'function') {
+                Main.inputMethod.commit('\r');
+            }
+        } catch (e) {}
     }
 
     sendTab() {
