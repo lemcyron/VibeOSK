@@ -189,6 +189,23 @@ class KeyboardWidget extends St.BoxLayout {
         }
     }
 
+    _getKeyDisplayLabel(keyData) {
+        const isShifted = this._keyInput ? this._keyInput.isShifted() : false;
+        if (isShifted) {
+            if (keyData.shiftLabel) {
+                return keyData.shiftLabel;
+            }
+            if (keyData.label && keyData.label.length === 1 && /[a-z]/i.test(keyData.label)) {
+                return keyData.label.toUpperCase();
+            }
+        } else {
+            if (keyData.label && keyData.label.length === 1 && /[a-z]/i.test(keyData.label)) {
+                return keyData.label.toLowerCase();
+            }
+        }
+        return keyData.label || keyData.text || '';
+    }
+
     _createKeyButton(keyData) {
         const btn = new St.Button({
             style_class: `osk-key ${keyData.cssClass || ''}`,
@@ -196,44 +213,29 @@ class KeyboardWidget extends St.BoxLayout {
             can_focus: false,
             track_hover: true,
             x_expand: true,
+            y_expand: true,
         });
 
-        // Set width weight in style
         const flex = keyData.width || 1;
-        btn.set_style(`-natural-width: ${Math.round(flex * 56)}px; flex-grow: ${flex};`);
+        btn.set_style(`-natural-width: ${Math.round(flex * 52)}px;`);
 
-        const contentBox = new St.BoxLayout({
-            orientation: Clutter.Orientation.VERTICAL,
+        const displayLabel = this._getKeyDisplayLabel(keyData);
+        const mainLbl = new St.Label({
+            text: displayLabel,
+            style_class: keyData.cssClass ? 'osk-key-label' : 'osk-key-label-single',
             x_align: Clutter.ActorAlign.CENTER,
             y_align: Clutter.ActorAlign.CENTER,
+            x_expand: true,
+            y_expand: true,
         });
 
-        if (keyData.shiftLabel && keyData.label) {
-            const shiftLbl = new St.Label({
-                text: keyData.shiftLabel,
-                style_class: 'osk-key-sublabel',
-            });
-            const mainLbl = new St.Label({
-                text: keyData.label,
-                style_class: 'osk-key-label',
-            });
-            contentBox.add_child(shiftLbl);
-            contentBox.add_child(mainLbl);
-        } else {
-            const mainLbl = new St.Label({
-                text: keyData.label || '',
-                style_class: 'osk-key-label-single',
-            });
-            contentBox.add_child(mainLbl);
-        }
-
-        btn.set_child(contentBox);
+        btn.set_child(mainLbl);
 
         // Long press detection for accents
         let longPressTimer = null;
         let isLongPress = false;
 
-        btn.connect('button-press-event', (actor, event) => {
+        const handlePress = () => {
             btn.add_style_pseudo_class('active');
             this._showKeyPreview(btn, keyData);
 
@@ -247,15 +249,12 @@ class KeyboardWidget extends St.BoxLayout {
                 });
             }
 
-            // Key repeat for backspace, arrows
             if (keyData.action === 'backspace' || keyData.action === 'left' || keyData.action === 'right') {
                 this._keyInput.startKeyRepeat(keyData, () => this._handleKeyAction(keyData));
             }
+        };
 
-            return Clutter.EVENT_STOP;
-        });
-
-        btn.connect('button-release-event', () => {
+        const handleRelease = () => {
             btn.remove_style_pseudo_class('active');
             this._hideKeyPreview();
             this._keyInput.stopKeyRepeat();
@@ -268,8 +267,43 @@ class KeyboardWidget extends St.BoxLayout {
             if (!isLongPress) {
                 this._handleKeyAction(keyData);
             }
+        };
 
-            return Clutter.EVENT_STOP;
+        btn.connect('button-press-event', (actor, event) => {
+            if (event.get_button() === Clutter.BUTTON_PRIMARY) {
+                handlePress();
+                return Clutter.EVENT_STOP;
+            }
+            return Clutter.EVENT_PROPAGATE;
+        });
+
+        btn.connect('button-release-event', (actor, event) => {
+            if (event.get_button() === Clutter.BUTTON_PRIMARY) {
+                handleRelease();
+                return Clutter.EVENT_STOP;
+            }
+            return Clutter.EVENT_PROPAGATE;
+        });
+
+        btn.connect('touch-event', (actor, event) => {
+            const type = event.type();
+            if (type === Clutter.EventType.TOUCH_BEGIN) {
+                handlePress();
+                return Clutter.EVENT_STOP;
+            } else if (type === Clutter.EventType.TOUCH_END) {
+                handleRelease();
+                return Clutter.EVENT_STOP;
+            } else if (type === Clutter.EventType.TOUCH_CANCEL) {
+                btn.remove_style_pseudo_class('active');
+                this._hideKeyPreview();
+                this._keyInput.stopKeyRepeat();
+                if (longPressTimer) {
+                    GLib.source_remove(longPressTimer);
+                    longPressTimer = null;
+                }
+                return Clutter.EVENT_STOP;
+            }
+            return Clutter.EVENT_PROPAGATE;
         });
 
         btn.connect('leave-event', () => {
@@ -319,9 +353,7 @@ class KeyboardWidget extends St.BoxLayout {
 
         this._hideKeyPreview();
 
-        const labelText = this._keyInput.isShifted() && keyData.shiftLabel
-            ? keyData.shiftLabel
-            : (keyData.label || keyData.text || '');
+        const labelText = this._getKeyDisplayLabel(keyData);
 
         if (!labelText) return;
 
@@ -392,8 +424,6 @@ class KeyboardWidget extends St.BoxLayout {
     }
 
     _updateModifierVisuals(mods) {
-        const isShifted = this._keyInput.isShifted();
-
         for (const { button, data } of this._keyButtons) {
             if (data.type === SpecialKeyType.MODIFIER) {
                 if (mods[data.modifier]) {
@@ -401,23 +431,10 @@ class KeyboardWidget extends St.BoxLayout {
                 } else {
                     button.remove_style_pseudo_class('checked');
                 }
-            } else if (data.shiftLabel && data.label) {
-                // Update primary visual display when Shift/Caps active
+            } else {
                 const child = button.get_child();
-                if (child && child.get_children) {
-                    const children = child.get_children();
-                    if (children.length >= 2) {
-                        children[0].text = isShifted ? data.label : data.shiftLabel;
-                        children[1].text = isShifted ? data.shiftLabel : data.label;
-                    }
-                }
-            } else if (data.label && data.label.length === 1 && /[a-z]/i.test(data.label)) {
-                const child = button.get_child();
-                if (child && child.get_children) {
-                    const children = child.get_children();
-                    if (children.length >= 1) {
-                        children[0].text = isShifted ? data.label.toUpperCase() : data.label.toLowerCase();
-                    }
+                if (child && child instanceof St.Label) {
+                    child.text = this._getKeyDisplayLabel(data);
                 }
             }
         }
