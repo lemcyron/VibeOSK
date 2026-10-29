@@ -13,7 +13,7 @@ class KeyboardWidget extends St.BoxLayout {
         super._init({
             name: 'VibeOSKContainer',
             style_class: 'osk-container',
-            vertical: true,
+            orientation: Clutter.Orientation.VERTICAL,
             reactive: true,
             can_focus: false,
             track_hover: true,
@@ -76,7 +76,7 @@ class KeyboardWidget extends St.BoxLayout {
     _buildHeader() {
         this._headerBox = new St.BoxLayout({
             style_class: 'osk-header',
-            vertical: false,
+            orientation: Clutter.Orientation.HORIZONTAL,
             reactive: true,
         });
 
@@ -159,7 +159,7 @@ class KeyboardWidget extends St.BoxLayout {
         this._bodyBox = new St.BoxLayout({
             name: 'VibeOSKBody',
             style_class: 'osk-body',
-            vertical: true,
+            orientation: Clutter.Orientation.VERTICAL,
             x_expand: true,
             y_expand: true,
         });
@@ -170,7 +170,7 @@ class KeyboardWidget extends St.BoxLayout {
         for (const rowData of layoutData.rows) {
             const rowBox = new St.BoxLayout({
                 style_class: 'osk-row',
-                vertical: false,
+                orientation: Clutter.Orientation.HORIZONTAL,
                 x_expand: true,
             });
 
@@ -203,7 +203,7 @@ class KeyboardWidget extends St.BoxLayout {
         btn.set_style(`-natural-width: ${Math.round(flex * 56)}px; flex-grow: ${flex};`);
 
         const contentBox = new St.BoxLayout({
-            vertical: true,
+            orientation: Clutter.Orientation.VERTICAL,
             x_align: Clutter.ActorAlign.CENTER,
             y_align: Clutter.ActorAlign.CENTER,
         });
@@ -354,7 +354,7 @@ class KeyboardWidget extends St.BoxLayout {
 
         this._accentPopover = new St.BoxLayout({
             style_class: 'osk-accent-popover',
-            vertical: false,
+            orientation: Clutter.Orientation.HORIZONTAL,
             reactive: true,
         });
 
