@@ -24,21 +24,18 @@ export class KeyInputManager {
         this._repeatIntervalId = null;
     }
 
-    _initVirtualDevice() {
-        try {
-            const backend = Clutter.get_default_backend();
-            const seat = backend ? backend.get_default_seat() : null;
-            if (seat) {
-                if (typeof seat.create_virtual_device === 'function') {
-                    this._virtualDevice = seat.create_virtual_device(Clutter.InputDeviceType.KEYBOARD_DEVICE);
-                } else if (typeof seat.create_virtual_input_device === 'function') {
-                    this._virtualDevice = seat.create_virtual_input_device(Clutter.InputDeviceType.KEYBOARD_DEVICE);
-                }
-            }
-        } catch (e) {
-            console.warn(`[VibeOSK] Failed to create virtual keyboard device: ${e}`);
-        }
+_initVirtualDevice() {
+    try {
+        const backend = global.stage.context.get_backend();
+        const seat = backend.get_default_seat();
+        this._virtualDevice = seat.create_virtual_device(Clutter.InputDeviceType.KEYBOARD_DEVICE);
+    } catch (e) {
+        console.error(`[VibeOSK] Failed to create virtual device: ${e}\n${e.stack}`);
     }
+
+    if (!this._virtualDevice)
+        console.error('[VibeOSK] Virtual keyboard device is null');
+}
 
     addModifierListener(callback) {
         this._modifierListeners.add(callback);
@@ -113,6 +110,15 @@ export class KeyInputManager {
         const isShifted = this.isShifted();
         const hasModifierCombo = this.modifiers.ctrl || this.modifiers.alt || this.modifiers.super;
 
+        // at the top of sendKey(), before "1. Direct text string"
+        if (keyData.action === 'return' || keyData.action === 'enter' ||
+            keyData.keyval === KeyCodes.RETURN || keyData.keyval === KeyCodes.KP_ENTER ||
+            keyData.label === 'Enter' || keyData.label === '⏎') {
+            this.sendReturn();
+            this.clearNonLockModifiers();
+            return;
+        }        
+        
         // 1. Direct text string (e.g. emoji, accent string)
         if (keyData.text) {
             this.commitText(keyData.text);
@@ -212,15 +218,12 @@ export class KeyInputManager {
     }
 
     sendReturn() {
-        // Send via virtual device for terminals and raw-key clients (X11, xterm, etc.)
-        this.sendKeyval(KeyCodes.RETURN);
-        // Send '\r' via input method for GTK/Qt Wayland IM clients (text fields, browsers, etc.)
-        // '\r' (0x0d) is the correct IM representation of Return — not '\n'
-        try {
-            if (Main.inputMethod && typeof Main.inputMethod.commit === 'function') {
-                Main.inputMethod.commit('\r');
-            }
-        } catch (e) {}
+    if (!this._virtualDevice) {
+        console.error('[VibeOSK] No virtual device; Return cannot be sent');
+        return;
+    }
+    this.sendKeyval(KeyCodes.RETURN);
+    // Removed commit('\r'): it is ignored by most clients and can double-fire in others
     }
 
     sendTab() {
@@ -275,36 +278,39 @@ export class KeyInputManager {
         }
     }
 
-    commitText(text) {
-        if (!text) return;
+commitText(text) {
+    if (!text) return;
 
-        // 1. Primary: GNOME Shell InputMethod commit (works universally in Wayland / X11)
-        try {
-            if (Main.inputMethod && typeof Main.inputMethod.commit === 'function') {
-                Main.inputMethod.commit(text);
-            }
-        } catch (e) {}
-
-        // 2. Also inject via VirtualDevice keyval for single ASCII characters
-        if (text.length === 1 && this._virtualDevice) {
-            const charCode = text.charCodeAt(0);
-            if (charCode >= 0x20 && charCode <= 0x7e) {
-                const now = GLib.get_monotonic_time();
-                try {
-                    this._virtualDevice.notify_keyval(now, charCode, Clutter.KeyState.PRESSED);
-                    GLib.timeout_add(GLib.PRIORITY_DEFAULT, 25, () => {
-                        if (this._virtualDevice) {
-                            try {
-                                const releaseTime = GLib.get_monotonic_time();
-                                this._virtualDevice.notify_keyval(releaseTime, charCode, Clutter.KeyState.RELEASED);
-                            } catch (e) {}
-                        }
-                        return GLib.SOURCE_REMOVE;
-                    });
-                } catch (e) {}
+    // Single printable ASCII char: inject as a real keypress, and only that.
+    if (text.length === 1 && this._virtualDevice) {
+        const charCode = text.charCodeAt(0);
+        if (charCode >= 0x20 && charCode <= 0x7e) {
+            const now = GLib.get_monotonic_time();
+            try {
+                this._virtualDevice.notify_keyval(now, charCode, Clutter.KeyState.PRESSED);
+                GLib.timeout_add(GLib.PRIORITY_DEFAULT, 25, () => {
+                    if (this._virtualDevice) {
+                        try {
+                            this._virtualDevice.notify_keyval(
+                                GLib.get_monotonic_time(), charCode, Clutter.KeyState.RELEASED);
+                        } catch (e) {}
+                    }
+                    return GLib.SOURCE_REMOVE;
+                });
+                return;   // <-- don't fall through to commit()
+            } catch (e) {
+                console.warn(`[VibeOSK] keyval inject failed, falling back: ${e}`);
             }
         }
     }
+
+    // Everything else (emoji, accents, multi-char strings), or fallback
+    try {
+        if (Main.inputMethod && typeof Main.inputMethod.commit === 'function') {
+            Main.inputMethod.commit(text);
+        }
+    } catch (e) {}
+}
 
     startKeyRepeat(keyData, repeatAction) {
         this.stopKeyRepeat();
