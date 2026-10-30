@@ -577,6 +577,7 @@ class KeyboardWidget extends St.BoxLayout {
 
         this._updateSize();
         Main.layoutManager.addTopChrome(this);
+        this._keepOnTop();
 
         this.opacity = 0;
         this._isShown = true;
@@ -600,10 +601,50 @@ class KeyboardWidget extends St.BoxLayout {
             duration: 180,
             mode: Clutter.AnimationMode.EASE_IN_QUAD,
             onComplete: () => {
+                this._stopKeepOnTop();
                 Main.layoutManager.removeChrome(this);
                 this._isShown = false;
             }
         });
+    }
+
+    // Keep the keyboard stacked above panels, menus, dialogs and app windows
+    // (everything except the lock screen shield).
+    _raiseToTop() {
+        const uiGroup = Main.layoutManager.uiGroup;
+        if (!uiGroup || this.get_parent() !== uiGroup) return;
+
+        const shield = Main.layoutManager.screenShieldGroup;
+        if (shield && shield.get_parent() === uiGroup)
+            uiGroup.set_child_below_sibling(this, shield);
+        else
+            uiGroup.set_child_above_sibling(this, null);
+    }
+
+    _keepOnTop() {
+        this._raiseToTop();
+        if (this._childAddedId) return;
+
+        // Re-raise whenever another actor (popup menu, dialog, panel, ...) is added above us
+        this._childAddedId = Main.layoutManager.uiGroup.connect('child-added', () => {
+            if (this._raiseIdleId) return;
+            this._raiseIdleId = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+                this._raiseIdleId = 0;
+                this._raiseToTop();
+                return GLib.SOURCE_REMOVE;
+            });
+        });
+    }
+
+    _stopKeepOnTop() {
+        if (this._childAddedId) {
+            Main.layoutManager.uiGroup.disconnect(this._childAddedId);
+            this._childAddedId = 0;
+        }
+        if (this._raiseIdleId) {
+            GLib.source_remove(this._raiseIdleId);
+            this._raiseIdleId = 0;
+        }
     }
 
     toggle() {
@@ -619,6 +660,8 @@ class KeyboardWidget extends St.BoxLayout {
     }
 
     destroy() {
+        this._stopKeepOnTop();
+
         if (this._monitorsChangedId) {
             Main.layoutManager.disconnect(this._monitorsChangedId);
             this._monitorsChangedId = 0;
