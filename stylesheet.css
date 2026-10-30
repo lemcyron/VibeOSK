@@ -60,7 +60,8 @@
     icon-size: 15px;
 }
 
-.osk-close-btn {
+.osk-close-btn,
+.osk-wide-btn {
     padding: 4px 28px; /* doubles the width of the standard header button (~35px -> ~71px) */
 }
 
@@ -139,22 +140,39 @@
     box-shadow: 0 0 10px rgba(53, 132, 228, 0.7);
 }
 
+/* Super Key */
+.osk-key-super {
+    background-color: #7e3ebe;
+    border-color: #7e3ebe;
+}
+
+.osk-key-super:hover {
+    background-color: #9455d3;
+}
+
+.osk-key-super:active,
+.osk-key-super.checked {
+    background-color: #62309a !important;
+    border-color: #b184dc !important;
+    box-shadow: 0 0 10px rgba(126, 62, 190, 0.7);
+}
+
 /* Special Actions */
 .osk-key-action {
     background-color: rgba(255, 255, 255, 0.13);
 }
 
 .osk-key-enter {
-    background-color: rgba(46, 194, 126, 0.75);
-    border-color: rgba(46, 194, 126, 0.9);
+    background-color: rgba(0, 188, 212, 0.75);
+    border-color: rgba(0, 188, 212, 0.9);
 }
 
 .osk-key-enter:hover {
-    background-color: rgba(46, 194, 126, 0.95);
+    background-color: rgba(0, 188, 212, 0.95);
 }
 
 .osk-key-enter:active {
-    background-color: #26a269;
+    background-color: #0097a7;
 }
 
 .osk-key-nav {
@@ -295,4 +313,18 @@
 .theme-amoled .osk-key {
     background-color: #121212;
     border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Super key color across themes (must follow theme rules) */
+.theme-light .osk-key-super,
+.theme-high-contrast .osk-key-super,
+.theme-amoled .osk-key-super {
+    background-color: #7e3ebe;
+    border-color: #7e3ebe;
+}
+
+.theme-light .osk-key-super:hover,
+.theme-high-contrast .osk-key-super:hover,
+.theme-amoled .osk-key-super:hover {
+    background-color: #9455d3;
 }

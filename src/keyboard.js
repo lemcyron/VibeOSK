@@ -109,7 +109,7 @@ class KeyboardWidget extends St.BoxLayout {
 
         // Quick dock toggle (Top/Bottom)
         this._dockBtn = new St.Button({
-            style_class: 'osk-header-btn',
+            style_class: 'osk-header-btn osk-wide-btn',
             child: new St.Icon({ icon_name: 'view-restore-symbolic', style_class: 'osk-icon-btn' }),
             can_focus: false,
         });
@@ -117,7 +117,7 @@ class KeyboardWidget extends St.BoxLayout {
 
         // Settings button
         this._settingsBtn = new St.Button({
-            style_class: 'osk-header-btn',
+            style_class: 'osk-header-btn osk-wide-btn',
             child: new St.Icon({ icon_name: 'emblem-system-symbolic', style_class: 'osk-icon-btn' }),
             can_focus: false,
         });
@@ -203,12 +203,17 @@ class KeyboardWidget extends St.BoxLayout {
             reactive: true,
             can_focus: false,
             track_hover: true,
-            x_expand: true,
+            x_expand: !keyData.fixed,
             y_expand: true,
         });
 
         const flex = keyData.width || 1;
-        btn.set_style(`-natural-width: ${Math.round(flex * 52)}px;`);
+        const px = Math.round(flex * 52);
+        // Fixed keys (arrow cluster) keep an identical pixel width in every row,
+        // so Up and Down sit in the same column.
+        btn.set_style(keyData.fixed
+            ? `min-width: ${px}px; max-width: ${px}px;`
+            : `-natural-width: ${px}px;`);
 
         const displayLabel = this._getKeyDisplayLabel(keyData);
         const mainLbl = new St.Label({
