@@ -49,6 +49,9 @@ class KeyboardWidget extends St.BoxLayout {
         // Connect settings changes
         this._settingsSignals = [];
         this._connectSettings();
+
+        // Re-fit size and position when the display is rotated/resized or monitors change
+        this._monitorsChangedId = Main.layoutManager.connect('monitors-changed', () => this._updateSize());
     }
 
     _connectSettings() {
@@ -616,6 +619,11 @@ class KeyboardWidget extends St.BoxLayout {
     }
 
     destroy() {
+        if (this._monitorsChangedId) {
+            Main.layoutManager.disconnect(this._monitorsChangedId);
+            this._monitorsChangedId = 0;
+        }
+
         for (const sig of this._settingsSignals) {
             this._settings.disconnect(sig);
         }
