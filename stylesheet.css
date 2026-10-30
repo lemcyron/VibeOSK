@@ -60,6 +60,10 @@
     icon-size: 15px;
 }
 
+.osk-close-btn {
+    padding: 4px 28px; /* doubles the width of the standard header button (~35px -> ~71px) */
+}
+
 .osk-close-btn:hover {
     background-color: rgba(235, 60, 60, 0.6);
     color: #ffffff;

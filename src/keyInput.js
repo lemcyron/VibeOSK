@@ -208,13 +208,10 @@ _initVirtualDevice() {
         }
     }
 
+    // Action keys are injected as a single real key event only. Also calling
+    // inputMethod.delete_surrounding()/commit() made the client act twice.
     sendBackspace() {
         this.sendKeyval(KeyCodes.BACKSPACE);
-        try {
-            if (Main.inputMethod && typeof Main.inputMethod.delete_surrounding === 'function') {
-                Main.inputMethod.delete_surrounding(-1, 1);
-            }
-        } catch (e) {}
     }
 
     sendReturn() {
@@ -228,20 +225,10 @@ _initVirtualDevice() {
 
     sendTab() {
         this.sendKeyval(KeyCodes.TAB);
-        try {
-            if (Main.inputMethod && typeof Main.inputMethod.commit === 'function') {
-                Main.inputMethod.commit('\t');
-            }
-        } catch (e) {}
     }
 
     sendDelete() {
         this.sendKeyval(KeyCodes.DELETE);
-        try {
-            if (Main.inputMethod && typeof Main.inputMethod.delete_surrounding === 'function') {
-                Main.inputMethod.delete_surrounding(0, 1);
-            }
-        } catch (e) {}
     }
 
     sendCombo(modifiers, keyval) {

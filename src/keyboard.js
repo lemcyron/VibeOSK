@@ -107,15 +107,7 @@ class KeyboardWidget extends St.BoxLayout {
         this._dragHandle.connect('motion-event', (actor, event) => this._onDragMotion(event));
         this._dragHandle.connect('touch-event', (actor, event) => this._onTouchDrag(event));
 
-        // Quick layout switch button
-        this._layoutBtn = new St.Button({
-            style_class: 'osk-header-btn',
-            label: '🌐 Layout',
-            can_focus: false,
-        });
-        this._layoutBtn.connect('clicked', () => this._cycleLayout());
-
-        // Quick dock toggle (Dock/Float)
+        // Quick dock toggle (Top/Bottom)
         this._dockBtn = new St.Button({
             style_class: 'osk-header-btn',
             child: new St.Icon({ icon_name: 'view-restore-symbolic', style_class: 'osk-icon-btn' }),
@@ -141,10 +133,9 @@ class KeyboardWidget extends St.BoxLayout {
         });
         this._closeBtn.connect('clicked', () => this.hide());
 
-        this._headerBox.add_child(this._dragHandle);
-        this._headerBox.add_child(this._layoutBtn);
-        this._headerBox.add_child(this._dockBtn);
         this._headerBox.add_child(this._settingsBtn);
+        this._headerBox.add_child(this._dragHandle);
+        this._headerBox.add_child(this._dockBtn);
         this._headerBox.add_child(this._closeBtn);
 
         this.add_child(this._headerBox);
@@ -234,8 +225,30 @@ class KeyboardWidget extends St.BoxLayout {
         // Long press detection for accents
         let longPressTimer = null;
         let isLongPress = false;
+        // Guards against the same physical tap being delivered twice
+        // (touch event + emulated pointer event) and against releases
+        // that were never preceded by a press on this button.
+        let pressed = false;
+
+        // Keys that auto-repeat while held fire on press, then repeat;
+        // release only stops the repeat (no extra trailing action).
+        const isRepeatable = keyData.type === SpecialKeyType.ACTION &&
+            ['backspace', 'delete', 'left', 'right', 'up', 'down'].includes(keyData.action);
+
+        const cancelPress = () => {
+            pressed = false;
+            btn.remove_style_pseudo_class('active');
+            this._hideKeyPreview();
+            this._keyInput.stopKeyRepeat();
+            if (longPressTimer) {
+                GLib.source_remove(longPressTimer);
+                longPressTimer = null;
+            }
+        };
 
         const handlePress = () => {
+            if (pressed) return;
+            pressed = true;
             btn.add_style_pseudo_class('active');
             this._showKeyPreview(btn, keyData);
 
@@ -249,22 +262,17 @@ class KeyboardWidget extends St.BoxLayout {
                 });
             }
 
-            if (keyData.action === 'backspace' || keyData.action === 'left' || keyData.action === 'right') {
+            if (isRepeatable) {
+                this._handleKeyAction(keyData);
                 this._keyInput.startKeyRepeat(keyData, () => this._handleKeyAction(keyData));
             }
         };
 
         const handleRelease = () => {
-            btn.remove_style_pseudo_class('active');
-            this._hideKeyPreview();
-            this._keyInput.stopKeyRepeat();
+            if (!pressed) return;
+            cancelPress();
 
-            if (longPressTimer) {
-                GLib.source_remove(longPressTimer);
-                longPressTimer = null;
-            }
-
-            if (!isLongPress) {
+            if (!isLongPress && !isRepeatable) {
                 this._handleKeyAction(keyData);
             }
         };
@@ -294,27 +302,13 @@ class KeyboardWidget extends St.BoxLayout {
                 handleRelease();
                 return Clutter.EVENT_STOP;
             } else if (type === Clutter.EventType.TOUCH_CANCEL) {
-                btn.remove_style_pseudo_class('active');
-                this._hideKeyPreview();
-                this._keyInput.stopKeyRepeat();
-                if (longPressTimer) {
-                    GLib.source_remove(longPressTimer);
-                    longPressTimer = null;
-                }
+                cancelPress();
                 return Clutter.EVENT_STOP;
             }
             return Clutter.EVENT_PROPAGATE;
         });
 
-        btn.connect('leave-event', () => {
-            btn.remove_style_pseudo_class('active');
-            this._hideKeyPreview();
-            this._keyInput.stopKeyRepeat();
-            if (longPressTimer) {
-                GLib.source_remove(longPressTimer);
-                longPressTimer = null;
-            }
-        });
+        btn.connect('leave-event', () => cancelPress());
 
         return btn;
     }
@@ -440,22 +434,6 @@ class KeyboardWidget extends St.BoxLayout {
         }
     }
 
-    _cycleLayout() {
-        const layoutList = [
-            LayoutTypes.QWERTY,
-            LayoutTypes.QWERTZ,
-            LayoutTypes.AZERTY,
-            LayoutTypes.DVORAK,
-            LayoutTypes.NUMPAD,
-            LayoutTypes.SYMBOLS,
-            LayoutTypes.FUNCTION,
-            LayoutTypes.EMOJI,
-        ];
-        const currentIndex = layoutList.indexOf(this._currentLayout);
-        const nextIndex = (currentIndex + 1) % layoutList.length;
-        this.setLayout(layoutList[nextIndex]);
-    }
-
     setLayout(layoutType) {
         if (LayoutDefinitions[layoutType]) {
             this._currentLayout = layoutType;
@@ -469,8 +447,8 @@ class KeyboardWidget extends St.BoxLayout {
     }
 
     _toggleDockMode() {
-        const modes = [DockPosition.BOTTOM, DockPosition.FLOATING, DockPosition.TOP];
-        const next = modes[(modes.indexOf(this._dockPosition) + 1) % modes.length];
+        // Header button toggles only Top <-> Bottom (Floating remains available in settings)
+        const next = this._dockPosition === DockPosition.BOTTOM ? DockPosition.TOP : DockPosition.BOTTOM;
         this._dockPosition = next;
         this._settings.set_string('dock-position', next);
         this._updateDockLayout();
