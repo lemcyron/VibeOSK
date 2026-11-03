@@ -41,7 +41,8 @@ export default class VibeOSKExtension extends Extension {
 
     _isTouchMode() {
         try {
-            return !!Clutter.get_default_backend().get_default_seat().touch_mode;
+            // Clutter.get_default_backend() was removed in GNOME 48+
+            return !!global.stage.context.get_backend().get_default_seat().touch_mode;
         } catch (e) {
             return false;
         }
@@ -81,13 +82,33 @@ export default class VibeOSKExtension extends Extension {
         }
 
         // 3. Fallback: GNOME's OSK became visible anyway -> swap it for VibeOSK
-        this._kbVisibleSig = Main.layoutManager.connect('keyboard-visible-changed', (_lm, visible) => {
-            if (!visible) return;
+        // The 'keyboard-visible-changed' signal does not exist on newer shells
+        // (connecting throws), so fall back to the keyboard box visibility.
+        const onGnomeOskShown = () => {
             this._showKeyboardFor(null);
             try {
                 Main.keyboard?.keyboardActor?.close(true);
             } catch (e) {}
-        });
+        };
+        this._kbVisibleSig = null;
+        this._kbVisibleObj = null;
+        try {
+            this._kbVisibleObj = Main.layoutManager;
+            this._kbVisibleSig = this._kbVisibleObj.connect('keyboard-visible-changed',
+                (_lm, visible) => {
+                    if (visible) onGnomeOskShown();
+                });
+        } catch (e) {
+            this._kbVisibleObj = null;
+            this._kbVisibleSig = null;
+            const box = Main.layoutManager.keyboardBox;
+            if (box) {
+                this._kbVisibleObj = box;
+                this._kbVisibleSig = box.connect('notify::visible', () => {
+                    if (box.visible) onGnomeOskShown();
+                });
+            }
+        }
     }
 
     _teardownInputMethodTracking() {
@@ -95,10 +116,11 @@ export default class VibeOSKExtension extends Extension {
             Main.inputMethod.disconnect(this._cursorLocSig);
             this._cursorLocSig = null;
         }
-        if (this._kbVisibleSig) {
-            Main.layoutManager.disconnect(this._kbVisibleSig);
-            this._kbVisibleSig = null;
+        if (this._kbVisibleSig && this._kbVisibleObj) {
+            this._kbVisibleObj.disconnect(this._kbVisibleSig);
         }
+        this._kbVisibleSig = null;
+        this._kbVisibleObj = null;
         const actor = this._gnomeOskActor;
         if (actor && actor._vibeOSK_origOpen) {
             actor.open = actor._vibeOSK_origOpen;

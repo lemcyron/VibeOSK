@@ -1,6 +1,12 @@
-/* GNOME Enhanced On-Screen Keyboard Stylesheet */
+/* Vibe On-Screen Keyboard stylesheet (GNOME Shell 45-51)
+   Only St-supported properties and plain selectors are used.
+   Key state is driven by pseudo-classes (hover, active, checked) because
+   keyboard.js uses add_style_pseudo_class().
+   Base rules are the dark look (system and dark themes). Theme classes are
+   set on the same container actor as osk-container and override the base
+   rules through higher specificity. */
 
-/* Main Container */
+/* ---------- Container ---------- */
 .osk-container {
     background-color: rgba(28, 28, 30, 0.94);
     border-radius: 16px 16px 0 0;
@@ -9,7 +15,7 @@
     padding: 6px 10px 10px 10px;
 }
 
-/* Header bar */
+/* ---------- Header ---------- */
 .osk-header {
     height: 38px;
     padding: 0 4px 6px 4px;
@@ -33,7 +39,7 @@
 
 .osk-header-title {
     font-size: 12pt;
-    font-weight: 600;
+    font-weight: bold;
     color: rgba(255, 255, 255, 0.85);
 }
 
@@ -43,8 +49,6 @@
     background-color: rgba(255, 255, 255, 0.08);
     color: rgba(255, 255, 255, 0.9);
     font-size: 10pt;
-    font-weight: 500;
-    transition-duration: 150ms;
 }
 
 .osk-header-btn:hover {
@@ -62,7 +66,7 @@
 
 .osk-close-btn,
 .osk-wide-btn {
-    padding: 4px 28px; /* doubles the width of the standard header button (~35px -> ~71px) */
+    padding: 4px 28px;
 }
 
 .osk-close-btn:hover {
@@ -70,17 +74,16 @@
     color: #ffffff;
 }
 
-/* Keyboard Body & Rows */
+/* ---------- Body & rows ---------- */
 .osk-body {
     spacing: 5px;
 }
 
 .osk-row {
     spacing: 5px;
-    x-expand: true;
 }
 
-/* Key Buttons */
+/* ---------- Keys ---------- */
 .osk-key {
     background-color: rgba(255, 255, 255, 0.10);
     border-radius: 8px;
@@ -88,7 +91,6 @@
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     min-height: 38px;
     padding: 2px 4px;
-    transition-duration: 120ms;
 }
 
 .osk-key:hover {
@@ -96,69 +98,61 @@
     border-color: rgba(255, 255, 255, 0.18);
 }
 
-.osk-key:active,
-.osk-key.active {
+.osk-key:active {
     background-color: rgba(53, 132, 228, 0.85);
     border-color: #3584e4;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
-/* Key Labels */
+/* Key labels */
 .osk-key-label {
     font-size: 12pt;
-    font-weight: 600;
+    font-weight: bold;
     color: #ffffff;
     text-align: center;
 }
 
 .osk-key-label-single {
     font-size: 13pt;
-    font-weight: 500;
     color: #ffffff;
     text-align: center;
 }
 
 .osk-key-sublabel {
     font-size: 9pt;
-    font-weight: 400;
     color: rgba(255, 255, 255, 0.55);
     text-align: center;
-    margin-bottom: -2px;
 }
 
-/* Modifier Keys */
+/* Key variants (dark) */
 .osk-key-modifier {
     background-color: rgba(255, 255, 255, 0.15);
     border-color: rgba(255, 255, 255, 0.12);
 }
 
-.osk-key-modifier.checked,
 .osk-key-modifier:checked {
-    background-color: #3584e4 !important;
-    border-color: #78aeed !important;
-    color: #ffffff !important;
+    background-color: #3584e4;
+    border-color: #78aeed;
     box-shadow: 0 0 10px rgba(53, 132, 228, 0.7);
 }
 
-/* Super Key */
-.osk-key-super {
-    background-color: #7e3ebe;
-    border-color: #7e3ebe;
-}
-
-.osk-key-super:hover {
-    background-color: #9455d3;
-}
-
-.osk-key-super:active,
-.osk-key-super.checked {
-    background-color: #62309a !important;
-    border-color: #b184dc !important;
-    box-shadow: 0 0 10px rgba(126, 62, 190, 0.7);
-}
-
-/* Special Actions */
 .osk-key-action {
+    background-color: rgba(255, 255, 255, 0.13);
+}
+
+.osk-key-nav {
+    background-color: rgba(255, 255, 255, 0.12);
+}
+
+.osk-key-layout-switch {
+    background-color: rgba(255, 255, 255, 0.14);
+}
+
+.osk-key-space {
+    background-color: rgba(255, 255, 255, 0.10);
+}
+
+.osk-key-numpad-digit {
     background-color: rgba(255, 255, 255, 0.13);
 }
 
@@ -175,31 +169,32 @@
     background-color: #0097a7;
 }
 
-.osk-key-nav {
-    background-color: rgba(255, 255, 255, 0.12);
+.osk-key-super {
+    background-color: #7e3ebe;
+    border-color: #7e3ebe;
 }
 
-.osk-key-layout-switch {
-    background-color: rgba(255, 255, 255, 0.14);
-    font-size: 11pt;
-    font-weight: 600;
+.osk-key-super:hover {
+    background-color: #9455d3;
 }
 
-.osk-key-space {
-    background-color: rgba(255, 255, 255, 0.10);
+.osk-key-super:active {
+    background-color: #62309a;
+    border-color: #b184dc;
 }
 
-.osk-key-numpad-digit {
-    background-color: rgba(255, 255, 255, 0.13);
-    font-weight: 700;
+.osk-key-super:checked {
+    background-color: #62309a;
+    border-color: #b184dc;
+    box-shadow: 0 0 10px rgba(126, 62, 190, 0.7);
 }
 
-/* Magnified Key Preview Tooltip */
+/* ---------- Key preview & accents (added to top chrome, not themed) ---------- */
 .osk-key-preview {
     background-color: #3584e4;
     color: #ffffff;
     font-size: 22pt;
-    font-weight: 700;
+    font-weight: bold;
     min-width: 56px;
     min-height: 56px;
     border-radius: 12px;
@@ -209,7 +204,6 @@
     padding: 6px 12px;
 }
 
-/* Accents Popover */
 .osk-accent-popover {
     background-color: rgba(36, 36, 40, 0.96);
     border: 1px solid rgba(255, 255, 255, 0.2);
@@ -226,16 +220,16 @@
     background-color: rgba(255, 255, 255, 0.12);
     color: #ffffff;
     font-size: 14pt;
-    font-weight: 600;
+    font-weight: bold;
 }
 
 .osk-accent-btn:hover {
     background-color: #3584e4;
 }
 
-/* Themes */
+/* ================= Themes ================= */
 
-/* Light Theme */
+/* ---------- Light ---------- */
 .theme-light {
     background-color: rgba(240, 242, 246, 0.96);
     border: 1px solid rgba(0, 0, 0, 0.15);
@@ -258,6 +252,14 @@
     background-color: rgba(0, 0, 0, 0.14);
 }
 
+.theme-light .osk-header-btn:active {
+    background-color: rgba(0, 0, 0, 0.22);
+}
+
+.theme-light .osk-drag-handle:hover {
+    background-color: rgba(0, 0, 0, 0.07);
+}
+
 .theme-light .osk-key {
     background-color: #ffffff;
     border: 1px solid rgba(0, 0, 0, 0.12);
@@ -266,6 +268,12 @@
 
 .theme-light .osk-key:hover {
     background-color: #e8ebf0;
+    border-color: rgba(0, 0, 0, 0.2);
+}
+
+.theme-light .osk-key:active {
+    background-color: #a8c8f4;
+    border-color: #3584e4;
 }
 
 .theme-light .osk-key-label,
@@ -278,53 +286,186 @@
 }
 
 .theme-light .osk-key-modifier,
-.theme-light .osk-key-action {
+.theme-light .osk-key-action,
+.theme-light .osk-key-nav,
+.theme-light .osk-key-layout-switch,
+.theme-light .osk-key-numpad-digit {
     background-color: #e2e5ec;
 }
 
-/* High Contrast Theme */
+.theme-light .osk-key-modifier:hover,
+.theme-light .osk-key-action:hover,
+.theme-light .osk-key-nav:hover,
+.theme-light .osk-key-layout-switch:hover,
+.theme-light .osk-key-numpad-digit:hover {
+    background-color: #d2d6df;
+}
+
+.theme-light .osk-key-modifier:active,
+.theme-light .osk-key-action:active,
+.theme-light .osk-key-nav:active,
+.theme-light .osk-key-layout-switch:active,
+.theme-light .osk-key-numpad-digit:active {
+    background-color: #a8c8f4;
+}
+
+.theme-light .osk-key-modifier:checked {
+    background-color: #3584e4;
+    border-color: #78aeed;
+    box-shadow: 0 0 10px rgba(53, 132, 228, 0.7);
+}
+
+.theme-light .osk-key-enter {
+    background-color: rgba(0, 188, 212, 0.85);
+    border-color: rgba(0, 188, 212, 0.95);
+}
+
+.theme-light .osk-key-enter:hover {
+    background-color: rgba(0, 188, 212, 1.0);
+}
+
+.theme-light .osk-key-enter:active {
+    background-color: #0097a7;
+}
+
+.theme-light .osk-key-super {
+    background-color: #7e3ebe;
+    border-color: #7e3ebe;
+}
+
+.theme-light .osk-key-super:hover {
+    background-color: #9455d3;
+}
+
+.theme-light .osk-key-super:active,
+.theme-light .osk-key-super:checked {
+    background-color: #62309a;
+    border-color: #b184dc;
+}
+
+.theme-light .osk-key-super .osk-key-label {
+    color: #ffffff;
+}
+
+.theme-light .osk-key-enter .osk-key-label {
+    color: #ffffff;
+}
+
+.theme-light .osk-key-modifier:checked .osk-key-label {
+    color: #ffffff;
+}
+
+/* ---------- High contrast ---------- */
 .theme-high-contrast {
     background-color: #000000;
     border: 2px solid #ffffff;
 }
 
-.theme-high-contrast .osk-key {
+.theme-high-contrast .osk-key,
+.theme-high-contrast .osk-key-modifier,
+.theme-high-contrast .osk-key-action,
+.theme-high-contrast .osk-key-nav,
+.theme-high-contrast .osk-key-layout-switch,
+.theme-high-contrast .osk-key-numpad-digit,
+.theme-high-contrast .osk-key-space {
     background-color: #1a1a1a;
     border: 2px solid #ffffff;
+}
+
+.theme-high-contrast .osk-key:hover {
+    background-color: #333333;
+}
+
+.theme-high-contrast .osk-key:active {
+    background-color: #ffff00;
+    border-color: #ffff00;
 }
 
 .theme-high-contrast .osk-key-label,
 .theme-high-contrast .osk-key-label-single {
     color: #ffffff;
-    font-weight: 700;
+    font-weight: bold;
 }
 
-.theme-high-contrast .osk-key-modifier.checked {
-    background-color: #ffffff !important;
-    color: #000000 !important;
+.theme-high-contrast .osk-key-modifier:checked {
+    background-color: #ffffff;
 }
 
-/* AMOLED Pure Black Theme */
+.theme-high-contrast .osk-key-modifier:checked .osk-key-label {
+    color: #000000;
+}
+
+.theme-high-contrast .osk-key-enter {
+    background-color: #00bcd4;
+    border: 2px solid #ffffff;
+}
+
+.theme-high-contrast .osk-key-enter .osk-key-label {
+    color: #000000;
+}
+
+.theme-high-contrast .osk-key-super {
+    background-color: #7e3ebe;
+    border: 2px solid #ffffff;
+}
+
+.theme-high-contrast .osk-key-super:hover {
+    background-color: #9455d3;
+}
+
+.theme-high-contrast .osk-key-super:active,
+.theme-high-contrast .osk-key-super:checked {
+    background-color: #62309a;
+}
+
+/* ---------- AMOLED ---------- */
 .theme-amoled {
     background-color: #000000;
     border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
-.theme-amoled .osk-key {
+.theme-amoled .osk-key,
+.theme-amoled .osk-key-modifier,
+.theme-amoled .osk-key-action,
+.theme-amoled .osk-key-nav,
+.theme-amoled .osk-key-layout-switch,
+.theme-amoled .osk-key-numpad-digit,
+.theme-amoled .osk-key-space {
     background-color: #121212;
     border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-/* Super key color across themes (must follow theme rules) */
-.theme-light .osk-key-super,
-.theme-high-contrast .osk-key-super,
+.theme-amoled .osk-key:hover {
+    background-color: #242424;
+}
+
+.theme-amoled .osk-key:active {
+    background-color: rgba(53, 132, 228, 0.85);
+    border-color: #3584e4;
+}
+
+.theme-amoled .osk-key-modifier:checked {
+    background-color: #3584e4;
+    border-color: #78aeed;
+    box-shadow: 0 0 10px rgba(53, 132, 228, 0.7);
+}
+
+.theme-amoled .osk-key-enter {
+    background-color: rgba(0, 188, 212, 0.75);
+    border-color: rgba(0, 188, 212, 0.9);
+}
+
 .theme-amoled .osk-key-super {
     background-color: #7e3ebe;
     border-color: #7e3ebe;
 }
 
-.theme-light .osk-key-super:hover,
-.theme-high-contrast .osk-key-super:hover,
 .theme-amoled .osk-key-super:hover {
     background-color: #9455d3;
+}
+
+.theme-amoled .osk-key-super:active,
+.theme-amoled .osk-key-super:checked {
+    background-color: #62309a;
+    border-color: #b184dc;
 }
