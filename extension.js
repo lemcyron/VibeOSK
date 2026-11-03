@@ -2,6 +2,7 @@
 import { Extension, gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import Clutter from 'gi://Clutter';
+import GLib from 'gi://GLib';
 import St from 'gi://St';
 
 import { KeyInputManager } from './src/keyInput.js';
@@ -27,6 +28,8 @@ export default class VibeOSKExtension extends Extension {
         // Show VibeOSK when GNOME would have shown its OSK (touch tap on an app's
         // text field) and keep it docked away from the focused field
         this._lastFieldRect = null;
+        this._lastTapTime = 0;
+        this._setupTapTracking();
         this._setupInputMethodTracking();
 
         // Auto-show focus detection
@@ -48,8 +51,27 @@ export default class VibeOSKExtension extends Extension {
         }
     }
 
+    // Remember when the user last clicked/tapped, so the keyboard only
+    // auto-appears as a result of a click on an input field (never on boot
+    // or when the shell focuses an entry by itself).
+    _setupTapTracking() {
+        this._tapSig = global.stage.connect('captured-event', (_stage, event) => {
+            const type = event.type();
+            if (type === Clutter.EventType.BUTTON_PRESS || type === Clutter.EventType.TOUCH_BEGIN)
+                this._lastTapTime = GLib.get_monotonic_time();
+            return Clutter.EVENT_PROPAGATE;
+        });
+    }
+
+    _recentlyTapped() {
+        // 1.5 s window (microseconds); allows for the app round-trip on Wayland
+        return this._lastTapTime > 0 &&
+               GLib.get_monotonic_time() - this._lastTapTime < 1500000;
+    }
+
     // Show VibeOSK, docked away from the given field rectangle (if known)
     _showKeyboardFor(rect) {
+        if (!this._recentlyTapped()) return;
         if (rect) this._lastFieldRect = rect;
         const r = this._lastFieldRect;
         if (r) this._keyboard.setAvoidRect(r.x, r.y, r.width, r.height);
@@ -112,6 +134,10 @@ export default class VibeOSKExtension extends Extension {
     }
 
     _teardownInputMethodTracking() {
+        if (this._tapSig) {
+            global.stage.disconnect(this._tapSig);
+            this._tapSig = null;
+        }
         if (this._cursorLocSig) {
             Main.inputMethod.disconnect(this._cursorLocSig);
             this._cursorLocSig = null;
