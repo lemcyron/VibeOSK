@@ -24,6 +24,11 @@ export default class VibeOSKExtension extends Extension {
         // Suppress GNOME's built-in on-screen keyboard so VibeOSK has priority
         this._suppressGnomeOSK();
 
+        // Show VibeOSK when GNOME would have shown its OSK (touch tap on an app's
+        // text field) and keep it docked away from the focused field
+        this._lastFieldRect = null;
+        this._setupInputMethodTracking();
+
         // Auto-show focus detection
         this._stageFocusSignalId = null;
         this._setupAutoShow();
@@ -32,6 +37,74 @@ export default class VibeOSKExtension extends Extension {
         this._autoShowSettingSig = this._settings.connect('changed::auto-show-on-focus', () => {
             this._setupAutoShow();
         });
+    }
+
+    _isTouchMode() {
+        try {
+            return !!Clutter.get_default_backend().get_default_seat().touch_mode;
+        } catch (e) {
+            return false;
+        }
+    }
+
+    // Show VibeOSK, docked away from the given field rectangle (if known)
+    _showKeyboardFor(rect) {
+        if (rect) this._lastFieldRect = rect;
+        const r = this._lastFieldRect;
+        if (r) this._keyboard.setAvoidRect(r.x, r.y, r.width, r.height);
+        this._keyboard.show();
+    }
+
+    _setupInputMethodTracking() {
+        // 1. Text-field cursor/caret location reported by apps through the input method
+        try {
+            this._cursorLocSig = Main.inputMethod.connect('cursor-location-changed', (_o, rect) => {
+                if (!rect) return;
+                const x = rect.x ?? rect.get_x();
+                const y = rect.y ?? rect.get_y();
+                const width = rect.width ?? rect.get_width();
+                const height = rect.height ?? rect.get_height();
+                this._lastFieldRect = { x, y, width, height };
+                if (this._keyboard.isKeyboardVisible())
+                    this._keyboard.setAvoidRect(x, y, width, height);
+            });
+        } catch (e) {
+            this._cursorLocSig = null;
+        }
+
+        // 2. GNOME's own OSK open requests (tap on an app text field in touch mode)
+        const actor = Main.keyboard?.keyboardActor ?? Main.keyboard?._keyboard;
+        if (actor && typeof actor.open === 'function' && !actor._vibeOSK_origOpen) {
+            this._gnomeOskActor = actor;
+            actor._vibeOSK_origOpen = actor.open;
+            actor.open = () => this._showKeyboardFor(null);
+        }
+
+        // 3. Fallback: GNOME's OSK became visible anyway -> swap it for VibeOSK
+        this._kbVisibleSig = Main.layoutManager.connect('keyboard-visible-changed', (_lm, visible) => {
+            if (!visible) return;
+            this._showKeyboardFor(null);
+            try {
+                Main.keyboard?.keyboardActor?.close(true);
+            } catch (e) {}
+        });
+    }
+
+    _teardownInputMethodTracking() {
+        if (this._cursorLocSig) {
+            Main.inputMethod.disconnect(this._cursorLocSig);
+            this._cursorLocSig = null;
+        }
+        if (this._kbVisibleSig) {
+            Main.layoutManager.disconnect(this._kbVisibleSig);
+            this._kbVisibleSig = null;
+        }
+        const actor = this._gnomeOskActor;
+        if (actor && actor._vibeOSK_origOpen) {
+            actor.open = actor._vibeOSK_origOpen;
+            delete actor._vibeOSK_origOpen;
+        }
+        this._gnomeOskActor = null;
     }
 
     _suppressGnomeOSK() {
@@ -76,10 +149,11 @@ export default class VibeOSKExtension extends Extension {
             this._stageFocusSignalId = null;
         }
 
-        const autoShow = this._settings.get_boolean('auto-show-on-focus');
-        if (!autoShow) return;
-
         this._stageFocusSignalId = global.stage.connect('notify::key-focus', () => {
+            // Always auto-show in touch mode; otherwise follow the preference
+            if (!this._isTouchMode() && !this._settings.get_boolean('auto-show-on-focus'))
+                return;
+
             const focusActor = global.stage.get_key_focus();
             if (!focusActor) return;
 
@@ -89,7 +163,9 @@ export default class VibeOSKExtension extends Extension {
 
             // Do not trigger when interacting with our own keyboard
             if (isEntry && !this._keyboard.contains(focusActor)) {
-                this._keyboard.show();
+                const [x, y] = focusActor.get_transformed_position();
+                const [w, h] = focusActor.get_transformed_size();
+                this._showKeyboardFor({ x, y, width: w, height: h });
             }
         });
     }
@@ -98,6 +174,7 @@ export default class VibeOSKExtension extends Extension {
         console.log(`[VibeOSK] Disabling ${this.metadata.name}`);
 
         // Restore GNOME's built-in OSK
+        this._teardownInputMethodTracking();
         this._restoreGnomeOSK();
 
         if (this._autoShowSettingSig) {

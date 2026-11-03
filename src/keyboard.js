@@ -489,6 +489,65 @@ class KeyboardWidget extends St.BoxLayout {
         this._updateDockLayout();
     }
 
+    _dockOrigin(position, monitor, width, height) {
+        switch (position) {
+            case DockPosition.TOP:
+                return [
+                    Math.round(monitor.x + (monitor.width - width) / 2),
+                    monitor.y + Main.panel.height,
+                ];
+            case DockPosition.FLOATING: {
+                const savedX = this._settings.get_int('floating-x');
+                const savedY = this._settings.get_int('floating-y');
+                return [
+                    Math.max(monitor.x, Math.min(monitor.x + monitor.width - width, savedX || (monitor.x + 100))),
+                    Math.max(monitor.y, Math.min(monitor.y + monitor.height - height, savedY || (monitor.y + 400))),
+                ];
+            }
+            case DockPosition.BOTTOM:
+            default:
+                return [
+                    Math.round(monitor.x + (monitor.width - width) / 2),
+                    monitor.y + monitor.height - height,
+                ];
+        }
+    }
+
+    // Pick the dock position to use. Normally the configured one, but if it would
+    // cover the focused input field, switch (without persisting) to top/bottom.
+    _resolveDock(monitor, width, height) {
+        const current = this._dockPosition;
+        const rect = this._avoidRect;
+        if (!rect) return current;
+
+        const margin = 12;
+        const overlaps = (pos) => {
+            const [x, y] = this._dockOrigin(pos, monitor, width, height);
+            return rect.x - margin < x + width && rect.x + rect.width + margin > x &&
+                   rect.y - margin < y + height && rect.y + rect.height + margin > y;
+        };
+
+        if (!overlaps(current)) return current;
+
+        let candidates;
+        if (current === DockPosition.TOP) candidates = [DockPosition.BOTTOM];
+        else if (current === DockPosition.BOTTOM) candidates = [DockPosition.TOP];
+        else candidates = [DockPosition.BOTTOM, DockPosition.TOP];
+
+        for (const pos of candidates) {
+            if (!overlaps(pos)) return pos;
+        }
+        return current;
+    }
+
+    // Tell the keyboard where the focused input field (or caret) is, in stage
+    // coordinates, so it can dock away from it.
+    setAvoidRect(x, y, width, height) {
+        this._avoidRect = { x, y, width, height };
+        if (this._isShown && !this._isDragging)
+            this._updateDockLayout();
+    }
+
     _updateDockLayout() {
         const monitor = Main.layoutManager.primaryMonitor;
         if (!monitor) return;
@@ -496,29 +555,9 @@ class KeyboardWidget extends St.BoxLayout {
         const width = this.width || monitor.width;
         const height = this.height || 290;
 
-        switch (this._dockPosition) {
-            case DockPosition.TOP:
-                this.set_position(
-                    Math.round(monitor.x + (monitor.width - width) / 2),
-                    monitor.y + Main.panel.height
-                );
-                break;
-            case DockPosition.FLOATING:
-                const savedX = this._settings.get_int('floating-x');
-                const savedY = this._settings.get_int('floating-y');
-                this.set_position(
-                    Math.max(monitor.x, Math.min(monitor.x + monitor.width - width, savedX || (monitor.x + 100))),
-                    Math.max(monitor.y, Math.min(monitor.y + monitor.height - height, savedY || (monitor.y + 400)))
-                );
-                break;
-            case DockPosition.BOTTOM:
-            default:
-                this.set_position(
-                    Math.round(monitor.x + (monitor.width - width) / 2),
-                    monitor.y + monitor.height - height
-                );
-                break;
-        }
+        const dock = this._resolveDock(monitor, width, height);
+        const [x, y] = this._dockOrigin(dock, monitor, width, height);
+        this.set_position(x, y);
     }
 
     _onDragStart(event) {
@@ -592,6 +631,7 @@ class KeyboardWidget extends St.BoxLayout {
     hide() {
         if (!this._isShown) return;
 
+        this._avoidRect = null;
         this._hideKeyPreview();
         this._hideAccentsPopover();
         this._keyInput.stopKeyRepeat();
@@ -615,7 +655,14 @@ class KeyboardWidget extends St.BoxLayout {
         if (!uiGroup || this.get_parent() !== uiGroup) return;
 
         const shield = Main.layoutManager.screenShieldGroup;
-        if (shield && shield.get_parent() === uiGroup)
+        const hasShield = shield && shield.get_parent() === uiGroup;
+
+        // Already in the right spot? Avoid needless restacking.
+        const children = uiGroup.get_children();
+        const target = hasShield ? children.indexOf(shield) - 1 : children.length - 1;
+        if (children.indexOf(this) === target) return;
+
+        if (hasShield)
             uiGroup.set_child_below_sibling(this, shield);
         else
             uiGroup.set_child_above_sibling(this, null);
@@ -634,9 +681,26 @@ class KeyboardWidget extends St.BoxLayout {
                 return GLib.SOURCE_REMOVE;
             });
         });
+
+        // Other code may also restack existing actors above us without adding
+        // anything (e.g. set_child_above_sibling), which emits no signal, so
+        // double-check periodically and on window restacking.
+        this._restackedId = global.display.connect('restacked', () => this._raiseToTop());
+        this._raiseTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 250, () => {
+            this._raiseToTop();
+            return GLib.SOURCE_CONTINUE;
+        });
     }
 
     _stopKeepOnTop() {
+        if (this._restackedId) {
+            global.display.disconnect(this._restackedId);
+            this._restackedId = 0;
+        }
+        if (this._raiseTimeoutId) {
+            GLib.source_remove(this._raiseTimeoutId);
+            this._raiseTimeoutId = 0;
+        }
         if (this._childAddedId) {
             Main.layoutManager.uiGroup.disconnect(this._childAddedId);
             this._childAddedId = 0;
